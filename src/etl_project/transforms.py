@@ -101,3 +101,43 @@ def concat_columns(
     else:
         out.insert(position, new_column, s)  # inserta en posición específica
     return out
+
+def adjust_date_format(
+    df: pd.DataFrame,
+    column_name: str,
+    current_format: str,
+    desired_format: str,
+) -> pd.DataFrame:
+    """
+    Ajusta el formato de fecha de una columna.
+    current_format y desired_format usan códigos de strftime/strptime.
+    """
+    if column_name not in df.columns:
+        raise KeyError(f"Columna no encontrada: {column_name}")
+    out = df.copy()
+    out[column_name] = pd.to_datetime(out[column_name], format=current_format, errors="coerce")
+    out[column_name] = out[column_name].dt.strftime(desired_format)
+    return out
+
+def concat_column_with_first_n(
+    df: pd.DataFrame,
+    new_column: str,
+    column_name: str,
+    n: int,
+    position: Optional[int] = None,
+) -> pd.DataFrame:
+    """
+    Crea una nueva columna concatenando los primeros n caracteres de otra columna.
+    Si 'position' se especifica, inserta la nueva columna en ese índice.
+    """
+    if column_name not in df.columns:
+        raise KeyError(f"Columna no encontrada: {column_name}")
+
+    out = df.copy()
+    out[new_column] = out[column_name].astype(str).str.slice(stop=n)
+
+    if position is not None and position < len(out.columns):
+        col_data = out.pop(new_column)
+        out.insert(position, new_column, col_data)  # inserta en posición específica
+
+    return out
