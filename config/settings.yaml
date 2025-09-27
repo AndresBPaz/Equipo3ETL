@@ -1,0 +1,42 @@
+project:
+  name: etl-project
+  env: dev
+
+paths:
+  base: "./"
+  data_raw: "data/raw/"
+  data_processed: "data/processed/"
+
+excel:
+  engine: "openpyxl"
+  header: 0
+
+datasets:
+  abastecimientos:
+    source:
+      folder: "data/raw/abastecimientos/"
+      patterns: ["*.xlsx", "*.xlsm"]
+      header: 0
+      engine: "openpyxl"
+    transforms:
+      clean_columns: true
+      drop_columns:
+        - material
+        - texto_breve_material
+        - almacén
+        - clase_de_movimiento
+        - "posición_doc.mat."
+        - "no reserva"
+        - centro_de_coste
+        - "un.medida_de_entrada"
+      filters:
+        - { column: clase_de_movimiento, op: equals, value: 261}
+        - { column: centro_de_coste, op: less_than, value: 20000000}
+      rename:
+        "fe.contabilización": fecha
+        orden: equipo
+        "ctd.en_um_entrada": galones
+      derive:
+        delete_first_n:
+          column: equipo
+          n: 3
