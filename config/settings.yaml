@@ -58,6 +58,10 @@ datasets:
       rename: {}
       filters: []
       derive:
+        adjust_date_format:
+          column: data
+          current_format: "%d/%m/%Y %I:%M:%S %p"
+          desired_format: "%d/%m/%Y"
         concat_columns:
           new_column: id
           columns: [fazenda, lote, talhao]
@@ -87,6 +91,36 @@ datasets:
           column: nm_faz
           n: 3
           position: 0
+        concat_columns:
+          new_column: id
+          columns: [hda, lote, tal]
+          sep: "_"
+          position: 0
+  rep_maquinaria:
+    source:
+      folder: "data/raw/rep_maquinaria/"
+      patterns: ["*.xlsx", "*.xlsm"]
+      header: 0
+      engine: "openpyxl"
+    transforms:
+      clean_columns: true
+      drop_columns:
+        - parada
+        - trabajador
+        - nombre_operador
+        - nombre_de_la_empresa
+        - tiporeg
+        - nm_parada
+      rename:
+        equip: equipo
+        "hacienda_o.s.": hda
+        suerte_apuntamiento: lote
+        "suerte_apuntamiento.1": tal
+      derive:
+        adjust_date_format:
+          column: fecha
+          current_format: "%d/%m/%Y %I:%M:%S %p"
+          desired_format: "%d/%m/%Y"
         concat_columns:
           new_column: id
           columns: [hda, lote, tal]

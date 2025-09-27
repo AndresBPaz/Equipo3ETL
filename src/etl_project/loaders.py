@@ -56,6 +56,35 @@ class ExcelLoader:
         """
         return self.read_one(path, header=header, engine=engine, sheet_name=None)
     
+    
+    def read_many(
+        self,
+        paths: Sequence[Union[str, Path]],
+        *,
+        header: int = 0,
+        engine: str = "openpyxl",
+        sheet_name: Union[str, int, List[Union[str, int]], None] = 0,
+        dtype: Optional[Union[str, Dict[str, str]]] = None,
+        usecols: Optional[Union[str, List[str]]] = None,
+        skiprows: Optional[Union[int, List[int]]] = None,
+    ) -> pd.DataFrame:
+        """
+        Lee múltiples rutas de Excel y concatena en un único DataFrame.
+        """
+        parts = [
+            self.read_one(
+                p,
+                header=header,
+                engine=engine,
+                sheet_name=sheet_name,
+                dtype=dtype,
+                usecols=usecols,
+                skiprows=skiprows,
+            )
+            for p in paths
+        ]
+        return pd.concat(parts, ignore_index=True)  # concatenación vertical recomendada 
+    
     def read_many_recursive(
         self,
         subdir: Union[str, Path],

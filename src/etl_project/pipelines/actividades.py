@@ -9,6 +9,7 @@ from etl_project.transforms import (
     drop_columns,
     filter_value,
     concat_columns,
+    adjust_date_format,
 )
 
 
@@ -63,8 +64,18 @@ class ActividadesPipeline:
         rename_map = tr.get("rename", {})
         if rename_map:
             df = df.rename(columns=rename_map)
+            
+        # 5) Ajuste de formato de fecha (si aplica)
+        adf = tr.get("adjust_date_format", {})
+        if adf:
+            df = adjust_date_format(
+                df,
+                column_name=adf["column"],
+                current_format=adf["current_format"],
+                desired_format=adf["desired_format"],
+            )
 
-        # 5) Nueva columna: id = fazenda_lote_talhao en la primera posición
+        # 6) Nueva columna: id = fazenda_lote_talhao en la primera posición
         cc = tr.get("derive", {}).get("concat_columns")
         if cc:
             df = concat_columns(

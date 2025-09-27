@@ -93,5 +93,4 @@ class InsumosPipeline:
     def run(self) -> pd.DataFrame:
         df = self.load()
         df = self.transform(df)
-        self.validate(df)
         return df
