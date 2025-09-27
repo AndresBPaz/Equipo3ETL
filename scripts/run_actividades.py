@@ -1,14 +1,13 @@
-# scripts/run_abastecimientos.py
 from pathlib import Path
 import yaml
 import pandas as pd
 
-# Importa utilidades de transformación que tengas en src/etl_sap/transforms.py
+
 from etl_project.transforms import (
     clean_column_names,
     drop_columns,
     filter_value,
-    delete_first_n,
+    concat_columns,
 )
 
 def load_settings(path="config/settings.yaml"):
@@ -24,7 +23,7 @@ def list_files_recursive(folder, patterns=("*.xlsx","*.xlsm")):
 
 def run():
     cfg = load_settings("config/settings.yaml")
-    ds = cfg["datasets"]["abastecimientos"]
+    ds = cfg["datasets"]["actividades"]
 
     # 1) Descubrir y leer archivos
     folder = ds["source"]["folder"]
@@ -40,28 +39,37 @@ def run():
     df = pd.concat(dfl, ignore_index=True)
 
     # 2) Transformaciones declaradas en settings.yaml
-    if ds["transforms"].get("clean_columns", True):
+    tr = ds.get("transforms", {})
+
+    if tr.get("clean_columns", True):
         df = clean_column_names(df)
 
-    for rule in ds["transforms"].get("filters", []):
+    for rule in tr.get("filters", []):
         df = filter_value(df, rule["column"], rule["value"], rule.get("op", "equals"))
-        
-    cols_to_drop = ds["transforms"].get("drop_columns", [])
+
+    cols_to_drop = tr.get("drop_columns", [])
     if cols_to_drop:
         df = drop_columns(df, cols_to_drop)
 
-    rename_map = ds["transforms"].get("rename", {})
+    rename_map = tr.get("rename", {})
     if rename_map:
         df = df.rename(columns=rename_map)
 
-    derive = ds["transforms"].get("derive", {})
-    if "delete_first_n" in derive:
-        df = delete_first_n(df, derive["delete_first_n"]["column"], derive["delete_first_n"]["n"])
+    # Nuevo atributo id: concatenar columnas (ej.: id = fazenda_lote_talhao)
+    cc = tr.get("derive", {}).get("concat_columns")
+    if cc:
+        df = concat_columns(
+            df,
+            new_column=cc["new_column"],
+            columns=cc["columns"],
+            sep=cc.get("sep", "_"),
+            position=cc.get("position", 0),
+        )
 
-    # 3) Guardar a processed en Parquet
+    # 3) Guardar a processed como Parquet
     processed_dir = Path(cfg["paths"]["data_processed"])
     processed_dir.mkdir(parents=True, exist_ok=True)
-    out_path = processed_dir / "abastecimientos.parquet"
+    out_path = processed_dir / "actividades.parquet"
     df.to_parquet(out_path, index=False)
 
 if __name__ == "__main__":

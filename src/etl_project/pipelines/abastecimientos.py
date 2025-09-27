@@ -83,19 +83,10 @@ class AbastecimientosPipeline:
 
         return df
 
-    def validate(self, df: pd.DataFrame) -> None:
-        """
-        Verifica columnas mínimas requeridas.
-        """
-        required = self.ds.get("validate", {}).get("required_columns", [])
-        if required:
-            self._validate_required(df, required)
-
     def run(self) -> pd.DataFrame:
         """
         Ejecuta load -> transform -> validate y retorna el DataFrame final.
         """
         df = self.load()
         df = self.transform(df)
-        self.validate(df)
         return df

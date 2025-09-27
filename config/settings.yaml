@@ -22,11 +22,11 @@ datasets:
       clean_columns: true
       drop_columns:
         - material
-        - texto_breve_material
+        - texto_breve_de_material
         - almacén
         - clase_de_movimiento
         - "posición_doc.mat."
-        - "no reserva"
+        - "nº_reserva"
         - centro_de_coste
         - "un.medida_de_entrada"
       filters:
@@ -40,3 +40,27 @@ datasets:
         delete_first_n:
           column: equipo
           n: 3
+  actividades:
+    source:
+      folder: "data/raw/actividades/"
+      patterns: ["*.xlsx", "*.xlsm"]
+      header: 0
+      engine: "openpyxl"
+    transforms:
+      clean_columns: true
+      drop_columns:
+        - tenencia
+        - id
+        - nom._empresa
+        - parada
+        - mov_parada
+        - fch_cort_siem
+      rename: {}
+      filters: []
+      derive:
+        concat_columns:
+          new_column: id
+          columns: [fazenda, lote, talhao]
+          sep: "_"
+          position: 0
+          

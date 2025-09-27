@@ -12,5 +12,6 @@ __all__ = [
     "drop_columns",
     "filter_value",
     "delete_first_n",
+    "concat_columns",
     "__version__",
 ]

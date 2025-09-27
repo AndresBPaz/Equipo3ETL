@@ -74,3 +74,30 @@ def filter_rows_by_value(
     df: pd.DataFrame, column_name: str, value, comparison_type: str = "equals"
 ) -> pd.DataFrame:
     return filter_value(df, column_name, value, comparison_type)
+
+def concat_columns(
+    df: pd.DataFrame,
+    new_column: str,
+    columns: Sequence[str],
+    sep: str = "_",
+    position: Optional[int] = None,
+) -> pd.DataFrame:
+    """
+    Concatena columnas como strings con separador y crea una nueva columna.
+    Si 'position' se especifica, inserta la nueva columna en ese índice.
+    """
+    missing = [c for c in columns if c not in df.columns]
+    if missing:
+        raise KeyError(f"Columnas no encontradas para concatenar: {missing}")
+
+    # Construir la serie concatenada de forma vectorizada
+    s = df[columns[0]].astype(str)
+    for c in columns[1:]:
+        s = s.str.cat(df[c].astype(str), sep=sep)
+
+    out = df.copy()
+    if position is None or position >= len(out.columns):
+        out[new_column] = s
+    else:
+        out.insert(position, new_column, s)  # inserta en posición específica
+    return out
