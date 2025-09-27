@@ -65,7 +65,7 @@ def delete_first_n(df: pd.DataFrame, column_name: str, n: int) -> pd.DataFrame:
     out[column_name] = out[column_name].astype(str).str.slice(start=n)
     return out
 
-# Aliases compatibles con nombres usados previamente en tu main
+# Aliases para las anteriores funciones con nombres más descriptivos
 def delete_columns(df: pd.DataFrame, columns_to_delete: Sequence[str]) -> pd.DataFrame:
     return drop_columns(df, columns_to_delete)
 
