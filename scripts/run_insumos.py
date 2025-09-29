@@ -17,7 +17,7 @@ def run():
     loader = ExcelLoader(base)
     pipeline = InsumosPipeline(loader, cfg)
 
-    # 2) Ejecutar: load -> transform -> validate
+    # 2) Ejecutar: Extract -> transform
     df = pipeline.run()  # La pipeline usa pandas.read_excel internamente según el YAML [web:30].
 
     # 3) Guardar a processed como Parquet

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Sequence
+from typing import Dict
 import pandas as pd
 
 from etl_project.loaders import ExcelLoader
 from etl_project.transforms import (
     clean_column_names,
-    drop_columns,
+    delete_columns,
     filter_value,
     concat_columns,
     adjust_date_format,
@@ -23,19 +23,18 @@ class ActividadesPipeline:
         self.loader = loader
         self.cfg = cfg
         self.ds = cfg["datasets"]["actividades"]
-
-    def _validate_required(self, df: pd.DataFrame, required: Sequence[str]) -> None:
-        missing = [c for c in required if c not in df.columns]
-        if missing:
-            raise ValueError(f"Faltan columnas requeridas: {missing}")
-
-    def load(self) -> pd.DataFrame:
-        # Descubrir y leer recursivamente
+        
+    def extract(self) -> pd.DataFrame:
+        """
+        Descubre archivos recursivamente y concatena en un único DataFrame.
+        """
         source = self.ds["source"]
         subdir = source["folder"]
         patterns = tuple(source.get("patterns", ["*.xlsx", "*.xlsm"]))
         header = source.get("header", self.cfg["excel"].get("header", 0))
         engine_name = source.get("engine", self.cfg["excel"].get("engine", "openpyxl"))
+        
+        #Sirve para leer multiples excels en una carpeta
         df = self.loader.read_many_recursive(
             subdir,
             patterns=patterns,
@@ -45,27 +44,30 @@ class ActividadesPipeline:
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Aplica limpieza de columnas, filtros, renombres y derivaciones.
+        """
         tr = self.ds.get("transforms", {})
 
-        # 1) Limpieza de columnas
+        # 1. Limpieza de nombres de columnas
         if tr.get("clean_columns", True):
             df = clean_column_names(df)
 
-        # 2) Filtros (si existieran en YAML)
+        # 2. Filtros (en este caso no hay, pero se deja la estructura, por si se agrega en el settings.yaml)
         for rule in tr.get("filters", []):
             df = filter_value(df, rule["column"], rule["value"], rule.get("op", "equals"))
 
-        # 3) Eliminar columnas innecesarias
+        # 3. Eliminar columnas innecesarias
         cols_to_drop = tr.get("drop_columns", [])
         if cols_to_drop:
-            df = drop_columns(df, cols_to_drop)
+            df = delete_columns(df, cols_to_drop)
 
-        # 4) Renombrados (si aplica)
+        # 4) Renombrar columnas
         rename_map = tr.get("rename", {})
         if rename_map:
             df = df.rename(columns=rename_map)
             
-        # 5) Ajuste de formato de fecha (si aplica)
+        # 5. Ajustar formato de fecha
         adf = tr.get("adjust_date_format", {})
         if adf:
             df = adjust_date_format(
@@ -75,7 +77,7 @@ class ActividadesPipeline:
                 desired_format=adf["desired_format"],
             )
 
-        # 6) Nueva columna: id = fazenda_lote_talhao en la primera posición
+        # 6. Nueva columna: id = fazenda_lote_talhao en la primera posición
         cc = tr.get("derive", {}).get("concat_columns")
         if cc:
             df = concat_columns(
@@ -89,6 +91,9 @@ class ActividadesPipeline:
         return df
 
     def run(self) -> pd.DataFrame:
-        df = self.load()
+        """
+        Ejecuta Extract -> transform y retorna el DataFrame final.
+        """
+        df = self.extract()
         df = self.transform(df)
         return df

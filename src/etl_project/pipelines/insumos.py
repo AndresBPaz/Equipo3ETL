@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Sequence
+from typing import Dict
 import pandas as pd
 
 from etl_project.loaders import ExcelLoader
 from etl_project.transforms import (
     clean_column_names,
-    drop_columns,
+    delete_columns,
     concat_columns,
     adjust_date_format,
     concat_column_with_first_n,
@@ -22,40 +22,47 @@ class InsumosPipeline:
         self.loader = loader
         self.cfg = cfg
         self.ds = cfg["datasets"]["insumos"]
-
-    def _validate_required(self, df: pd.DataFrame, required: Sequence[str]) -> None:
-        missing = [c for c in required if c not in df.columns]
-        if missing:
-            raise ValueError(f"Faltan columnas requeridas: {missing}")
-
-    def load(self) -> pd.DataFrame:
+        
+    def extract(self) -> pd.DataFrame:
+        """
+        Descubre archivos recursivamente y concatena en un único DataFrame.
+        """
         source = self.ds["source"]
+        subdir = source["folder"]
+        patterns = tuple(source.get("patterns", ["*.xlsx", "*.xlsm"]))
+        header = source.get("header", self.cfg["excel"].get("header", 0))
+        engine_name = source.get("engine", self.cfg["excel"].get("engine", "openpyxl"))
+        
+        # Sirve para leer multiples excels en una carpeta
         df = self.loader.read_many_recursive(
-            source["folder"],
-            patterns=tuple(source.get("patterns", ["*.xlsx", "*.xlsm"])),
-            header=source.get("header", self.cfg["excel"].get("header", 0)),
-            engine=source.get("engine", self.cfg["excel"].get("engine", "openpyxl")),
+            subdir,
+            patterns=patterns,
+            header=header,
+            engine=engine_name,
         )
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Aplica limpieza de columnas, filtros, renombres y derivaciones.
+        """
         tr = self.ds.get("transforms", {})
 
-        # 1) Limpieza de columnas
+        # 1. Limpieza de nombres de columnas
         if tr.get("clean_columns", True):
             df = clean_column_names(df)
 
-        # 2) Eliminar columnas innecesarias
+        # 3. Eliminar columnas innecesarias
         drops = tr.get("drop_columns", [])
         if drops:
-            df = drop_columns(df, drops)
+            df = delete_columns(df, drops)
 
-        # 3) Renombrar columnas (p. ej. data_apli -> fecha)
+        # 3) Renombrar columnas
         rename_map = tr.get("rename", {})
         if rename_map:
             df = df.rename(columns=rename_map)
 
-        # 4) Ajustar formato de fechas según YAML
+        # 4. Ajustar formato de fechas según YAML
         date_adjust = tr.get("derive", {}).get("adjust_date_format")
         if date_adjust:
             df = adjust_date_format(
@@ -64,9 +71,8 @@ class InsumosPipeline:
                 current_format=date_adjust["current_format"],
                 desired_format=date_adjust["desired_format"],
             )
-            # pd.to_datetime con 'format' y dt.strftime implementan el cambio de formato de forma robusta.
 
-        # 5) hda = primeros n caracteres de nm_faz (posicional si se indica)
+        # 5 Crear mieva columna: hda = primeros n caracteres de nm_faz (posicional si se indica)
         firstn = tr.get("derive", {}).get("concat_column_with_first_n")
         if firstn:
             df = concat_column_with_first_n(
@@ -77,7 +83,7 @@ class InsumosPipeline:
                 position=firstn.get("position", 0),
             )
 
-        # 6) id = hda_lote_tal en la posición indicada
+        # 6. Nueva columna: id = hda_lote_tal en la primera posición
         cc = tr.get("derive", {}).get("concat_columns")
         if cc:
             df = concat_columns(
@@ -91,6 +97,9 @@ class InsumosPipeline:
         return df
 
     def run(self) -> pd.DataFrame:
-        df = self.load()
+        """
+        Ejecuta Extract -> transform y retorna el DataFrame final.
+        """
+        df = self.extract()
         df = self.transform(df)
         return df

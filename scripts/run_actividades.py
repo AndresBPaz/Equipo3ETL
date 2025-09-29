@@ -17,7 +17,7 @@ def run():
     loader = ExcelLoader(base)
     pipeline = ActividadesPipeline(loader, cfg)
 
-    # 2) Ejecutar: load -> transform -> validate (si aplica)
+    # 2) Ejecutar: Extract -> transform -> validate (si aplica)
     df = pipeline.run()
 
     # 3) Guardar a processed como Parquet

@@ -11,7 +11,7 @@ def load_settings(path="config/settings.yaml"):
 def run():
     cfg = load_settings("config/settings.yaml")
 
-    # 1) Preparar loader y pipeline
+    # 1) Preparar Exte y pipeline
     base = Path(cfg["paths"]["base"])
     loader = ExcelLoader(base)
     pipeline = RepMaquinariaPipeline(loader, cfg)

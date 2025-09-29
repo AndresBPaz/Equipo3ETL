@@ -16,7 +16,7 @@ def run():
     loader = ExcelLoader(base)
     pipeline = AbastecimientosPipeline(loader, cfg)
 
-    # 2) Ejecutar: load -> transform (según YAML)
+    # 2) Ejecutar: Extract -> transform (según YAML)
     df = pipeline.run()
 
     # 3) Guardar a processed como Parquet

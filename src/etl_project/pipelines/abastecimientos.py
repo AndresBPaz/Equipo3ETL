@@ -1,17 +1,15 @@
-# src/etl_sap/pipelines/abastecimientos.py
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from typing import Dict
 import pandas as pd
 
 from etl_project.loaders import ExcelLoader
 from etl_project.transforms import (
     clean_column_names,
-    drop_columns,
+    delete_columns,
     filter_value,
     delete_first_n,
 )
-
 
 class AbastecimientosPipeline:
     """
@@ -24,12 +22,7 @@ class AbastecimientosPipeline:
         self.cfg = cfg
         self.ds = cfg["datasets"]["abastecimientos"]
 
-    def _validate_required(self, df: pd.DataFrame, required: Sequence[str]) -> None:
-        missing = [c for c in required if c not in df.columns]
-        if missing:
-            raise ValueError(f"Faltan columnas requeridas: {missing}")
-
-    def load(self) -> pd.DataFrame:
+    def extract(self) -> pd.DataFrame:
         """
         Descubre archivos recursivamente y concatena en un único DataFrame.
         """
@@ -39,7 +32,7 @@ class AbastecimientosPipeline:
         header = source.get("header", self.cfg["excel"].get("header", 0))
         engine_name = source.get("engine", self.cfg["excel"].get("engine", "openpyxl"))
 
-        # El loader usa pandas.read_excel y concatena resultados
+        #Sirve para leer multiples excels en una carpeta
         df = self.loader.read_many_recursive(
             subdir,
             patterns=patterns,
@@ -54,25 +47,25 @@ class AbastecimientosPipeline:
         """
         tr = self.ds.get("transforms", {})
 
-        # 1) Limpieza de nombres de columnas
+        # 1. Limpieza de nombres de columnas
         if tr.get("clean_columns", True):
             df = clean_column_names(df)
 
-        # 2) Filtros (usar nombres ya limpios si así se configuró)
+        # 2. Filtros (usar nombres mas claros)
         for rule in tr.get("filters", []):
             df = filter_value(df, rule["column"], rule["value"], rule.get("op", "equals"))
 
-        # 3) Eliminar columnas innecesarias
+        # 3. Eliminar columnas innecesarias
         cols_to_drop = tr.get("drop_columns", [])
         if cols_to_drop:
-            df = drop_columns(df, cols_to_drop)
+            df = delete_columns(df, cols_to_drop)
 
-        # 4) Renombrar columnas
+        # 4. Renombrar columnas
         rename_map = tr.get("rename", {})
         if rename_map:
             df = df.rename(columns=rename_map)
 
-        # 5) Derivaciones simples (ej. cortar prefijo de equipo)
+        # 5. Se llama a delete_first_n que elimina los primeros n caracteres de los valores de una columna
         derive = tr.get("derive", {})
         if "delete_first_n" in derive:
             df = delete_first_n(
@@ -85,8 +78,8 @@ class AbastecimientosPipeline:
 
     def run(self) -> pd.DataFrame:
         """
-        Ejecuta load -> transform -> validate y retorna el DataFrame final.
+        Ejecuta Extract -> transform y retorna el DataFrame final.
         """
-        df = self.load()
+        df = self.extract()
         df = self.transform(df)
         return df
