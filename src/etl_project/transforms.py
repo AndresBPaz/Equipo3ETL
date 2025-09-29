@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Optional, Sequence
 import pandas as pd
 
 def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -64,16 +64,6 @@ def delete_first_n(df: pd.DataFrame, column_name: str, n: int) -> pd.DataFrame:
     out = df.copy()
     out[column_name] = out[column_name].astype(str).str.slice(start=n)
     return out
-
-# Aliases para las anteriores funciones con nombres más descriptivos
-def delete_columns(df: pd.DataFrame, columns_to_delete: Sequence[str]) -> pd.DataFrame:
-    return drop_columns(df, columns_to_delete)
-
-
-def filter_rows_by_value(
-    df: pd.DataFrame, column_name: str, value, comparison_type: str = "equals"
-) -> pd.DataFrame:
-    return filter_value(df, column_name, value, comparison_type)
 
 def concat_columns(
     df: pd.DataFrame,
@@ -141,3 +131,13 @@ def concat_column_with_first_n(
         out.insert(position, new_column, col_data)  # inserta en posición específica
 
     return out
+
+# Aliases para las anteriores funciones con nombres más descriptivos
+def delete_columns(df: pd.DataFrame, columns_to_delete: Sequence[str]) -> pd.DataFrame:
+    return drop_columns(df, columns_to_delete)
+
+
+def filter_rows_by_value(
+    df: pd.DataFrame, column_name: str, value, comparison_type: str = "equals"
+) -> pd.DataFrame:
+    return filter_value(df, column_name, value, comparison_type)

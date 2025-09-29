@@ -37,7 +37,7 @@ def run():
         df.to_parquet(pq_path, index=False)  # requiere pyarrow o fastparquet
         # CSV
         csv_path = processed_dir / f"{stem}.csv"
-        df.to_csv(csv_path, index=False, encoding="utf-8")  # CSV plano sin índice
+        df.to_csv(csv_path, index=False, encoding="utf-8", date_format="%d/%m/%Y")
 
         print(f"[run_all] OK -> {pq_path.name} y {csv_path.name}")
 
