@@ -139,6 +139,11 @@ Ejecutar todo el flujo:
 python scripts/run_all.py
 ```
 
+Ejecutar carga a base de datos. 
+
+```bash
+python scripts/loadData.py
+```
 ---
 
 ## 📤 Salidas

@@ -1,0 +1,45 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
+
+from etl_project.CSVLoader import CSVLoader
+from etl_project.config import Config
+
+class LoadData:
+    def __init__(self):
+        self.cfg = Config("config/settings.yaml")
+        self.jobs = [
+            {
+                "table": "abastecimientos",
+                "schema": "raw",
+                "file": Path(__file__).parent.parent / Path(self.cfg.DATA_PATH) / "processed/abastecimientos.csv"
+            },
+            {
+                "table": "actividades",
+                "schema": "raw",
+                "file": Path(__file__).parent.parent / Path(self.cfg.DATA_PATH) / "processed/actividades.csv"
+            },
+            {
+                "table": "insumos",
+                "schema": "raw",
+                "file": Path(__file__).parent.parent / Path(self.cfg.DATA_PATH) / "processed/insumos.csv"
+            },
+            {
+                "table": "rep_maquinaria",
+                "schema": "raw",
+                "file": Path(__file__).parent.parent / Path(self.cfg.DATA_PATH) / "processed/rep_maquinaria.csv"
+            }, 
+            # aquí agregas más datasets:
+            # {"table": "actividades", "schema": "raw", "file": Path(self.cfg.DATA_PATH) / "actividades.csv"},
+            # {"table": "insumos", "schema": "raw", "file": Path(self.cfg.DATA_PATH) / "insumos.csv"},
+        ]
+
+    def run(self):
+        for job in self.jobs:
+            loader = CSVLoader(table_name=job["table"], schema=job["schema"])
+            loader.load_csv(job["file"], if_exists="append")
+
+if __name__ == "__main__":
+    pipeline = LoadData()
+    pipeline.run()

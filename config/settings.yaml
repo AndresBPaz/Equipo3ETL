@@ -2,6 +2,14 @@ project:
   name: etl-project
   env: dev
 
+database:
+  HOST: 
+  PORT:  
+  USER: 
+  PASSWORD: 
+  DB_NAME: 
+  DATA_PATH: ./data
+
 paths:
   base: "./"
   data_raw: "data/raw/"
