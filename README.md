@@ -187,3 +187,9 @@ df.to_csv("ruta.csv", index=False, encoding="utf-8", date_format="%d/%m/%Y")
 ```
 
 ---
+
+Visualizar los datos. 
+```python
+./venv/bin/python './src/etl_project/views/plots.py'
+streamlit run ./src/etl_project/views/plots.py
+```

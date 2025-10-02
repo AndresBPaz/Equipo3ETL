@@ -14,4 +14,7 @@ dependencies = [
     "PyYAML>=6.0",
     "pyarrow",
     "sqlalchemy",
-    "psycopg2-binary"
+    "psycopg2-binary",
+    "streamlit",
+    "plotly.express"
+]

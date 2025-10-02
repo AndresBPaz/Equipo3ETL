@@ -102,53 +102,7 @@ CREATE TABLE IF NOT EXISTS raw.rep_maquinaria (
   nro_de_la_os TEXT
 );
 
--- Vista de ejemplo (usando abastecimientos en vez de tabla ficticia)
-CREATE OR REPLACE VIEW stage.vista_limpia AS
-SELECT *
-FROM raw.abastecimientos ;
-
--- Materialized view de ejemplo (agrupando por producto)
--- CREATE MATERIALIZED VIEW analytics.reporte_final AS
--- SELECT producto, AVG(valor) AS promedio_valor
--- FROM stage.vista_limpia
--- GROUP BY producto;
-
--- Vista de consumo realizado por los equipos por mes
-create or replace view stage.vista_consumo_equipo_mensual as 
-select 
-  a.equipo, 
-  to_char(
-    to_date(a.fecha, 'dd/mm/yyyy'), 
-    'yyyy-mm'
-  ) as mes, 
-  sum(a.galones) as total_galones, 
-  avg(a.galones) as promedio_galones 
-from 
-  raw.abastecimientos a 
-group by 
-  a.equipo, 
-  to_char(
-    to_date(a.fecha, 'dd/mm/yyyy'), 
-    'yyyy-mm'
-  ) ;
-
--- Vista de costos por actividad
-create or replace view stage.vista_costo_actividad as 
-select 
-  a.empresa, 
-  a.fazenda, 
-  a.lote, 
-  a.actividad, 
-  to_date(a."data", 'dd/mm/yyyy') as fecha, 
-  sum(a.a_pag_uni * a.quantidade) as costo_total_actividad 
-from 
-  raw.actividades a 
-group by 
-  a.empresa, 
-  a.fazenda, 
-  a.lote, 
-  a.actividad, 
-  a."data" ;
+ 
 
 -- Vista de productividad del trabajador
 create or replace view stage.vista_productividad_trabajador as 
@@ -160,78 +114,92 @@ select
   count(*) as cantidad_registros, 
   avg(a.qtd_prod) as promedio_produccion 
 from 
-  raw.actividades a 
+  raw.actividades a
+where
+a.unidade = 'HA'
 group by 
   a.func, 
   a.empresa, 
   a.actividad ;
+  
+CREATE OR REPLACE VIEW stage.vista_costo_insumos_por_hectarea
+AS SELECT i.zona,
+    i.nm_faz AS hacienda,
+    i.nm_actividad AS actividad,
+    to_date(i.fecha, 'dd/mm/yyyy'::text) AS fecha,
+    sum(i.valor) AS costo_total,
+    sum(i.area_apli) AS area_total,
+        CASE
+            WHEN sum(i.area_apli) > 0::numeric THEN round(sum(i.valor) / sum(i.area_apli), 2)
+            ELSE 0::numeric
+        END AS costo_por_hectarea
+   FROM raw.insumos i
+  where um_prod = 'HA'
+  GROUP BY i.zona, i.nm_faz, i.nm_actividad, i.fecha;
+ 
+ 
+ DROP VIEW IF EXISTS stage.vista_produccion_maquinaria;
 
--- Vista de costo insumo por hetarea
-create or replace view stage.vista_costo_insumos_por_hectarea as 
-select 
-  i.zona, 
-  i.nm_faz as hacienda, 
-  i.nm_actividad as actividad, 
-  to_date(i.fecha, 'dd/mm/yyyy') as fecha, 
-  sum(i.valor) as costo_total, 
-  sum(i.area_apli) as area_total, 
-  case when sum(i.area_apli) > 0 then round(
-    sum(i.valor):: numeric / sum(i.area_apli), 
-    2
-  ) else 0 end as costo_por_hectarea 
-from 
-  raw.insumos i 
-group by 
-  i.zona, 
-  i.nm_faz, 
-  i.nm_actividad, 
-  i.fecha ;
-
--- Vista de producción por maquinaria
-create or replace view stage.vista_produccion_maquinaria as 
-select 
-  rm.equipo, 
-  rm.nombre_actividad, 
-  to_date(rm.fecha, 'dd/mm/yyyy') as fecha, 
-  rm.empresa_de_la_maquina, 
-  sum(rm.cantidad_produccion) as total_produccion, 
-  sum(rm.duracion_horas) as total_horas, 
-  case when sum(rm.duracion_horas) > 0 then round(
-    sum(rm.cantidad_produccion):: numeric / sum(rm.duracion_horas), 
-    2
-  ) else 0 end as produccion_por_hora 
-from 
-  raw.rep_maquinaria rm 
-group by 
-  rm.equipo, 
-  rm.nombre_actividad, 
-  rm.fecha, 
-  rm.empresa_de_la_maquina ;
-
--- Vista de combustible por unidad producida
-create 
-or replace view stage.vista_combustible_por_unidad_producida as 
-select 
-  a.equipo, 
+ CREATE 
+OR REPLACE VIEW stage.vista_produccion_maquinaria AS WITH produccion AS (
+  SELECT 
+    --rm.equipo,
+    rm.nombre_actividad, 
+    --TO_DATE(rm.fecha, 'DD/MM/YYYY') AS fecha,
+    --rm.empresa_de_la_maquina,
+    SUM(rm.cantidad_produccion) AS total_produccion, 
+    SUM(rm.duracion_horas) AS total_horas, 
+    CASE WHEN SUM(rm.duracion_horas) > 0 THEN ROUND(
+      SUM(rm.cantidad_produccion) / SUM(rm.duracion_horas), 
+      2
+    ) ELSE 0 END AS produccion_por_hora 
+  FROM 
+    raw.rep_maquinaria rm 
+  WHERE 
+    rm.unidad_produccion = 'HA' 
+  GROUP BY 
+    --rm.equipo, 
+    rm.nombre_actividad --rm.fecha, 
+    --rm.empresa_de_la_maquina
+    ) 
+SELECT 
+  * 
+FROM 
+  produccion 
+ORDER BY 
+  produccion_por_hora DESC 
+LIMIT 
+  5;
+ 
+ drop view if exists stage.vista_combustible_por_unidad_producida;
+ 
+ CREATE 
+OR REPLACE VIEW stage.vista_combustible_por_unidad_producida AS 
+SELECT 
+  --a.equipo, 
   to_char(
-    to_date(a.fecha, 'dd/mm/yyyy'), 
-    'yyyy-mm'
-  ) as mes, 
-  sum(a.galones) as total_galones, 
-  sum(rm.cantidad_produccion) as total_produccion, 
-  case when sum(rm.cantidad_produccion) > 0 then round(
-    sum(a.galones):: numeric / sum(rm.cantidad_produccion), 
+    to_date(a.fecha, 'dd/mm/yyyy' :: text):: timestamp with time zone, 
+    'yyyy-mm' :: text
+  ) AS mes, 
+  sum(a.galones) AS total_galones, 
+  sum(rm.cantidad_produccion) AS total_produccion, 
+  CASE WHEN sum(rm.cantidad_produccion) > 0 :: numeric THEN round(
+    sum(a.galones) / sum(rm.cantidad_produccion), 
     2
-  ) else 0 end as galones_por_unidad 
-from 
+  ) ELSE 0 :: numeric END AS galones_por_unidad 
+FROM 
   raw.abastecimientos a 
-  join raw.rep_maquinaria rm on a.equipo = rm.equipo 
-  and to_date(a.fecha, 'dd/mm/yyyy') = to_date(rm.fecha, 'dd/mm/yyyy') 
-group by 
-  a.equipo, 
-  to_char(
-    to_date(a.fecha, 'dd/mm/yyyy'), 
-    'yyyy-mm'
-  ) ;
+  JOIN raw.rep_maquinaria rm ON a.equipo = rm.equipo 
+  AND to_date(a.fecha, 'dd/mm/yyyy' :: text) = to_date(rm.fecha, 'dd/mm/yyyy' :: text) 
+where 
+  rm.unidad = 'H' 
+GROUP BY 
+  --a.equipo, 
+  (
+    to_char(
+      to_date(a.fecha, 'dd/mm/yyyy' :: text):: timestamp with time zone, 
+      'yyyy-mm' :: text
+    )
+  );
 
 COMMIT;

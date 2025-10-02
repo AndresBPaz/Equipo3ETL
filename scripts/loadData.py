@@ -37,9 +37,11 @@ class LoadData:
 
     def run(self):
         for job in self.jobs:
+            print(f"[loadData] Cargando {job['table']}...")
             loader = CSVLoader(table_name=job["table"], schema=job["schema"])
             loader.load_csv(job["file"], if_exists="append")
-
+            print(f"[loadData] OK -> {job['table']}")
+            
 if __name__ == "__main__":
     pipeline = LoadData()
     pipeline.run()

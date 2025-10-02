@@ -1,3 +1,4 @@
+import os
 import yaml
 from pathlib import Path
 
@@ -10,16 +11,15 @@ class Config:
 
         # Variables de la base de datos
         db = self.config.get("database", {})
-        self.DB_HOST = db.get("HOST")
-        self.DB_PORT = db.get("PORT")
-        self.DB_NAME = db.get("DB_NAME")
-        self.DB_USER = db.get("USER")
-        self.DB_PASSWORD = db.get("PASSWORD")
+        self.DB_HOST =  os.getenv("DB_HOST", db.get("HOST")) 
+        self.DB_PORT = os.getenv("DB_PORT", db.get("PORT")) 
+        self.DB_NAME = os.getenv("DB_NAME", db.get("DB_NAME")) 
+        self.DB_USER = os.getenv("DB_USER", db.get("USER")) 
+        self.DB_PASSWORD = os.getenv("DB_PASSW", db.get("PASSWORD")) 
 
         # Rutas de archivos
-        self.DATA_PATH = db.get("DATA_PATH")
-
-
+        pat = self.config.get("paths", {})
+        self.DATA_PATH = pat.get("DATA_PATH")
 
     def get_db_uri(self):
         """Devuelve la URI estilo SQLAlchemy"""
