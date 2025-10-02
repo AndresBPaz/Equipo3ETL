@@ -15,6 +15,7 @@ PGHOST = os.getenv("DB_HOST") or os.getenv("PGHOST") or st.secrets.get("DB_HOST"
 PGPORT = os.getenv("DB_PORT") or os.getenv("PGPORT") or st.secrets.get("DB_PORT", "5432")
 PGDATABASE = os.getenv("DB_NAME") or os.getenv("PGDATABASE") or st.secrets.get("DB_NAME")
 
+
 db = DatabaseConnection()
 engine = db.get_engine()
 
