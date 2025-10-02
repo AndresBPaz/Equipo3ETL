@@ -9,6 +9,19 @@ on:
 jobs:
   etl-job:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: mydb
+        options: >-
+          --health-cmd="pg_isready -U myuser -d mydb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     env:
       DB_HOST: ${{ secrets.DB_HOST }}
