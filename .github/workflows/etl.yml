@@ -32,8 +32,8 @@ jobs:
           pip install -e .
       
       - name: Ejecutar pipeline transformacion de datos
-        run: python Scripts/run_all.py
+        run: python ./Scripts/run_all.py
 
       - name: Ejecutar pipeline carga de datos
-        run: python Scripts/loadData.py
+        run: python ./Scripts/loadData.py
       
