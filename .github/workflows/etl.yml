@@ -14,8 +14,8 @@ jobs:
         image: postgres:15
         ports: ['5432:5432']
         env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypass
           POSTGRES_DB: mydb
         options: >-
           --health-cmd="pg_isready -U myuser -d mydb"
