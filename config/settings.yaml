@@ -2,10 +2,18 @@ project:
   name: etl-project
   env: dev
 
+database:
+  HOST: 141.94.78.176
+  PORT: 5432
+  USER: 
+  PASSWORD: 
+  DB_NAME: mydb
+
 paths:
   base: "./"
   data_raw: "data/raw/"
   data_processed: "data/processed/"
+  DATA_PATH: ./data
 
 excel:
   engine: "openpyxl"

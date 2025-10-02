@@ -32,9 +32,6 @@ def run():
         pipeline = Pipeline(loader, cfg)
         df = pipeline.run()
 
-        # Parquet
-        pq_path = processed_dir / f"{stem}.parquet"
-        df.to_parquet(pq_path, index=False)  # requiere pyarrow o fastparquet
         # CSV
         csv_path = processed_dir / f"{stem}.csv"
         df.to_csv(csv_path, index=False, encoding="utf-8", date_format="%d/%m/%Y")

@@ -12,5 +12,9 @@ dependencies = [
     "sqlalchemy>=2.0",
     "PyMySQL>=1.1",
     "PyYAML>=6.0",
-    "pyarrow"
+    "pyarrow",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "streamlit",
+    "plotly.express"
 ]
