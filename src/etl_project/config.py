@@ -46,6 +46,5 @@ class Config:
     def get_db_uri(self) -> str:
         """Devuelve la URI estilo SQLAlchemy."""
         return (
-            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
