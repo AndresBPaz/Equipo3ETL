@@ -2,11 +2,9 @@ name: ETL
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "pruebas_yaml" ]
   pull_request:
     branches: [ "main" ]
-  push:
-    branches: [ "pruebas_yaml" ]
 
 jobs:
   etl-job:
