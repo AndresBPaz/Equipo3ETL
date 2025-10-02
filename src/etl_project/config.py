@@ -43,7 +43,9 @@ class Config:
             or os.getenv("PGPASSWORD")
             or db.get("PASSWORD")
         )
-        self.DATA_PATH = os.getenv("DATA_PATH", db.get("DATA_PATH"))
+        # Rutas de archivos
+        paths = self.config.get("paths", {})
+        self.DATA_PATH = paths.get("DATA_PATH")
 
         # Validación temprana para evitar DSN inválido
         missing = [k for k, v in {
