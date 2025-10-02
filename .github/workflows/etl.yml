@@ -2,8 +2,9 @@ name: ETL
 
 on:
   push:
-    branches:
-      - main   # se ejecuta al hacer push a la rama main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   etl-job:
@@ -35,6 +36,4 @@ jobs:
 
       - name: Ejecutar pipeline carga de datos
         run: python Scripts/loadData.py
-
-      - name: Visualizacion de los datos
-        run: python src/etl_project/views/plots.py --server.port 8501 --server.address 0.0.0.0
+      
