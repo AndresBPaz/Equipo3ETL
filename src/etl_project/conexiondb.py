@@ -10,7 +10,7 @@ class DatabaseConnection:
 
     def connect(self):
         """Crea una conexión usando SQLAlchemy"""
-        try 
+        try:
             if self.engine is None:
                 # Construir la URL de conexión usando sqlalchemy.URL
                 db_url = URL.create(
