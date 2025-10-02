@@ -38,8 +38,6 @@ class LoadData:
     def run(self):
         for job in self.jobs:
             print(f"[loadData] Cargando {job['table']}...")
-            # etl_project/CSVLoader.py (antes de df.to_sql)
-            print(f"[loadData] Conectando a {loader.db.config.DB_HOST}:{loader.db.config.DB_PORT}/{loader.db.config.DB_NAME} como {loader.db.config.DB_USER}")
             loader = CSVLoader(table_name=job["table"], schema=job["schema"])
             loader.load_csv(job["file"], if_exists="append")
             print(f"[loadData] OK -> {job['table']}")
