@@ -9,14 +9,11 @@ from etl_project.conexiondb import DatabaseConnection
 
 st.set_page_config(page_title="Dashboard Caña", layout="wide")
 
-config = Config("config/settings.yaml")
-
-# Conexión (usar variables de entorno o reemplazar por credenciales)
-PGUSER = config.DB_USER,
-PGPASSWORD = config.DB_PASSWORD,
-PGHOST = config.DB_HOST,
-PGPORT = config.DB_PORT,
-PGDATABASE = config.DB_NAME,
+PGUSER = os.getenv("DB_USER") or os.getenv("PGUSER") or st.secrets.get("DB_USER")
+PGPASSWORD = os.getenv("DB_PASSWORD") or os.getenv("PGPASSWORD") or st.secrets.get("DB_PASSW")
+PGHOST = os.getenv("DB_HOST") or os.getenv("PGHOST") or st.secrets.get("DB_HOST")
+PGPORT = os.getenv("DB_PORT") or os.getenv("PGPORT") or st.secrets.get("DB_PORT", "5432")
+PGDATABASE = os.getenv("DB_NAME") or os.getenv("PGDATABASE") or st.secrets.get("DB_NAME")
 
 db = DatabaseConnection()
 engine = db.get_engine()
