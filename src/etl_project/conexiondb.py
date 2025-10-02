@@ -10,17 +10,21 @@ class DatabaseConnection:
 
     def connect(self):
         """Crea una conexión usando SQLAlchemy"""
-        if self.engine is None:
-            # Construir la URL de conexión usando sqlalchemy.URL
-            db_url = URL.create(
-                drivername="postgresql+psycopg2", # Especifica el driver psycopg2
-                username=self.config.DB_USER,
-                password=self.config.DB_PASSWORD,
-                host=self.config.DB_HOST,
-                port=self.config.DB_PORT,
-                database=self.config.DB_NAME,
-            )
-            self.engine = create_engine(db_url)
+        try:
+            if self.engine is None:
+                # Construir la URL de conexión usando sqlalchemy.URL
+                db_url = URL.create(
+                    drivername="postgresql+psycopg2", # Especifica el driver psycopg2
+                    username=self.config.DB_USER,
+                    password=self.config.DB_PASSWORD,
+                    host=self.config.DB_HOST,
+                    port=self.config.DB_PORT,
+                    database=self.config.DB_NAME,
+                )
+                self.engine = create_engine(db_url)
+        except Exception as e:
+            print(f"Error al conectar a la base de datos: {e}")
+            self.engine = None
         return self.engine
 
     def get_engine(self):
