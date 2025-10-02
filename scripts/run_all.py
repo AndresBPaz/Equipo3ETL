@@ -32,11 +32,10 @@ def run():
         pipeline = Pipeline(loader, cfg)
         df = pipeline.run()
 
-        # CSV
         csv_path = processed_dir / f"{stem}.csv"
         df.to_csv(csv_path, index=False, encoding="utf-8", date_format="%d/%m/%Y")
-
-        print(f"[run_all] OK -> {pq_path.name} y {csv_path.name}")
+ 
+        print(f"[run_all] OK -> {csv_path.name} ")  
 
 if __name__ == "__main__":
     run()
