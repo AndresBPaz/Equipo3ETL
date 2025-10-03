@@ -68,3 +68,7 @@ data/processed/**/_common_metadata
 
 # Config local (no versionar overrides)
 config/*.local.yaml
+
+
+#ignora el secrets
+secrets.toml
