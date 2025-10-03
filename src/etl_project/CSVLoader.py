@@ -42,18 +42,19 @@ class CSVLoader:
         if engine is None:
             raise RuntimeError("❌ No se pudo establecer conexión con la base de datos")
 
-        # Asegurar que el esquema existe
+        # Asegurar que el esquema existe - IMPORTANTE: usar text()
         with engine.begin() as conn:
             conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {self.schema}"))
-            print(f"[CSVLoader] Esquema '{self.schema}' verificado")
+        
+        print(f"[CSVLoader] Esquema '{self.schema}' verificado")
 
-        # Limpiar la tabla si es necesario
+        # Limpiar la tabla si es necesario - IMPORTANTE: usar text()
         if if_exists == "replace":
             with engine.begin() as conn:
                 conn.execute(
                     text(f"DELETE FROM {self.schema}.{self.table_name}")
                 )
-                print(f"[CSVLoader] Tabla {self.schema}.{self.table_name} limpiada")
+            print(f"[CSVLoader] Tabla {self.schema}.{self.table_name} limpiada")
 
         # Cargar en la tabla
         df.to_sql(

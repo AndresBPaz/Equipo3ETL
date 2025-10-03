@@ -1,5 +1,5 @@
 # db_connection.py
-from sqlalchemy import create_engine, URL
+from sqlalchemy import create_engine, URL, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from .config import Config
@@ -41,9 +41,10 @@ class DatabaseConnection:
                         }
                     )
                     
-                    # Test de conexión
+                    # Test de conexión - IMPORTANTE: usar text() en SQLAlchemy 2.0
                     with self.engine.connect() as conn:
-                        conn.execute("SELECT 1")
+                        conn.execute(text("SELECT 1"))
+                        conn.commit()  # Commit explícito en SQLAlchemy 2.0
                     
                     print(f"✓ Conexión exitosa a la base de datos")
                     return self.engine
@@ -83,10 +84,12 @@ class DatabaseConnection:
             self.engine = None
             print("✓ Conexión cerrada")
     
-    def query(self, sql_query):
+    def query(self, sql_query: str):
         """Ejecuta una consulta SQL y devuelve los resultados."""
         if not self.engine:
             self.connect()
+        
         with self.engine.connect() as connection:
-            result = connection.execute(sql_query)
+            # IMPORTANTE: usar text() para queries SQL como strings
+            result = connection.execute(text(sql_query))
             return result.fetchall()
